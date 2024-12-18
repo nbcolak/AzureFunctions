@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
+using FirstFunction.models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -34,5 +35,18 @@ public static class HttpTriggerBindings
         
     }
     
-   
+    [FunctionName("HttpTriggerBindingsQueue")]
+    [return: Queue("queueproduct", Connection = "MyAzureStorageQueue")]
+    public static async Task<Product> RunQueueAsync(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+        HttpRequest req,
+        ILogger log)
+    {
+        log.LogInformation("Azure Queue işlem başlatıldı.");
+        string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        Product newProduct = JsonConvert.DeserializeObject<Product>(requestBody);
+
+        return newProduct;
+        
+    }
 }
